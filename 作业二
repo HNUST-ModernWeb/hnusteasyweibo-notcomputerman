@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>微言 · 简易微博</title>
+    <!-- Font Awesome 6 (免费图标库) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f5f7fc 0%, #eef2f5 100%);
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            color: #1e2a3e;
+            padding: 2rem 1rem;
+        }
+
+        /* 主容器 */
+        .weibo-container {
+            max-width: 680px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(2px);
+            border-radius: 2rem;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        /* 头部设计 */
+        .header {
+            background: #ffffffdd;
+            backdrop-filter: blur(8px);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .header p {
+            font-size: 0.85rem;
+            color: #5b6e8c;
+            margin-top: 0.4rem;
+        }
+
+        /* 内容区 */
+        .content {
+            padding: 1.8rem 2rem 2rem 2rem;
+        }
+
+        /* 组件通用样式 */
+        .card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 1.8rem;
+        }
+
+        /* 发布表单区域 */
+        .post-form-card {
+            padding: 1.5rem;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            background: #ffffff;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .input-nick {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 2rem;
+            padding: 0.7rem 1.2rem;
+            width: 100%;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            outline: none;
+            font-family: inherit;
+        }
+        .input-nick:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+            background: white;
+        }
+        .textarea-msg {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.2rem;
+            padding: 0.9rem 1.2rem;
+            width: 100%;
+            font-size: 0.95rem;
+            resize: vertical;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .textarea-msg:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+            background: white;
+        }
+        .char-counter {
+            text-align: right;
+            font-size: 0.7rem;
+            color: #7e8b9e;
+            margin-top: 0.3rem;
+        }
+        .btn-publish {
+            background: linear-gradient(95deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 2.5rem;
+            padding: 0.75rem 1.2rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 8px rgba(59,130,246,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-publish:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 18px rgba(59,130,246,0.35);
+            filter: brightness(1.02);
+        }
+        .btn-publish:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 动态列表 */
+        .posts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .post-item {
+            background: #ffffff;
+            border-radius: 1.3rem;
+            padding: 1.2rem 1.2rem 1rem 1.2rem;
+            transition: all 0.2s;
+            border: 1px solid #edf2f7;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .post-item:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+        }
+        .post-header {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            margin-bottom: 0.7rem;
+        }
+        .avatar {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(125deg, #b2d8ff, #6c9eff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .post-info {
+            flex: 1;
+        }
+        .post-nickname {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #0f172a;
+        }
+        .post-time {
+            font-size: 0.7rem;
+            color: #8ba0bc;
+            margin-top: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .post-content {
+            font-size: 0.95rem;
+            line-height: 1.45;
+            color: #1e293b;
+            margin: 0.6rem 0 0.5rem 0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding-left: 0.2rem;
+        }
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+        }
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 2rem;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            color: #ef4444;
+            background: #fee2e2;
+            transform: scale(1.05);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            background: #f8fafd;
+            border-radius: 1.8rem;
+            color: #6c86a3;
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 0.6rem;
+            opacity: 0.5;
+        }
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+            color: #3b82f6;
+        }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 1rem 0 1.5rem;
+            color: #8e9eae;
+            border-top: 1px solid rgba(0,0,0,0.03);
+            margin-top: 0.5rem;
+        }
+        @media (max-width: 560px) {
+            .content {
+                padding: 1rem;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .post-form-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="weibo-container">
+        <div class="header">
+            <h1><i class="fas fa-feather-alt" style="font-size: 1.7rem; margin-right: 8px;"></i> 微言 · 片刻</h1>
+            <p>分享文字 · 连接思绪</p>
+        </div>
+        <div class="content">
+            <!-- 发布表单组件 -->
+            <post-form @post-created="handlePostCreated"></post-form>
+            <!-- 动态列表组件 -->
+            <post-list :posts="posts" :loading="loading" @delete-post="handleDeletePost"></post-list>
+        </div>
+        <footer>
+            <i class="far fa-comment-dots"></i> 简单真诚的分享 · 每一句都值得
+        </footer>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    // 定义发布表单组件
+    const PostForm = {
+        template: `
+            <div class="card post-form-card">
+                <div class="form-group">
+                    <input type="text" class="input-nick" placeholder="昵称 (选填)" v-model="nickname" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <textarea rows="3" class="textarea-msg" placeholder="此刻的想法..." v-model="content" maxlength="280"></textarea>
+                    <div class="char-counter">{{ content.length }}/280</div>
+                </div>
+                <button class="btn-publish" @click="publishPost" :disabled="isPublishing || !content.trim()">
+                    <i class="fas fa-pen-fancy"></i> 
+                    {{ isPublishing ? '发布中...' : '发布新动态' }}
+                </button>
+            </div>
+        `,
+        data() {
+            return {
+                nickname: '',
+                content: '',
+                isPublishing: false
+            };
+        },
+        methods: {
+            async publishPost() {
+                const rawContent = this.content.trim();
+                if (!rawContent) return;
+                this.isPublishing = true;
+                try {
+                    const payload = {
+                        content: rawContent,
+                        nickname: this.nickname.trim() || '拾光者'
+                    };
+                    await axios.post('/api/posts', payload);
+                    // 发布成功，清空表单
+                    this.content = '';
+                    this.nickname = '';
+                    // 通知父组件刷新列表
+                    this.$emit('post-created');
+                } catch (err) {
+                    console.error('发布失败', err);
+                    alert('发布失败，请检查网络或稍后重试');
+                } finally {
+                    this.isPublishing = false;
+                }
+            }
+        }
+    };
+
+    // 单个帖子组件（简化删除事件冒泡）
+    const PostItem = {
+        props: ['post'],
+        template: `
+            <div class="post-item">
+                <div class="post-header">
+                    <div class="avatar">{{ firstLetter }}</div>
+                    <div class="post-info">
+                        <div class="post-nickname">{{ displayNickname }}</div>
+                        <div class="post-time"><i class="far fa-clock"></i> {{ formattedTime }}</div>
+                    </div>
+                </div>
+                <div class="post-content">{{ post.content }}</div>
+                <div class="post-actions">
+                    <button class="delete-btn" @click="confirmDelete" title="删除动态">
+                        <i class="fas fa-trash-alt"></i> 删除
+                    </button>
+                </div>
+            </div>
+        `,
+        computed: {
+            displayNickname() {
+                return this.post.nickname || '拾光者';
+            },
+            firstLetter() {
+                const name = this.displayNickname;
+                return name.charAt(0).toUpperCase();
+            },
+            formattedTime() {
+                if (!this.post.timestamp) return '刚刚';
+                const date = new Date(this.post.timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMin = Math.floor(diffMs / 60000);
+                if (diffMin < 1) return '几秒前';
+                if (diffMin < 60) return `${diffMin}分钟前`;
+                if (diffMin < 1440) return `${Math.floor(diffMin / 60)}小时前`;
+                return `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+            }
+        },
+        methods: {
+            confirmDelete() {
+                if (confirm('确定删除这条分享吗？')) {
+                    this.$emit('delete', this.post.id);
+                }
+            }
+        }
+    };
+
+    // 帖子列表组件
+    const PostList = {
+        components: { PostItem },
+        props: {
+            posts: {
+                type: Array,
+                default: () => []
+            },
+            loading: {
+                type: Boolean,
+                default: false
+            }
+        },
+        template: `
+            <div class="posts-list">
+                <div v-if="loading" class="loading-spinner">
+                    <i class="fas fa-spinner fa-pulse"></i> 加载中...
+                </div>
+                <div v-else-if="posts.length === 0" class="empty-state">
+                    <i class="far fa-smile-wink"></i>
+                    <p>还没有任何动态，来做第一个分享的人吧 ✨</p>
+                </div>
+                <PostItem v-for="post in posts" :key="post.id" :post="post" @delete="$emit('delete-post', post.id)"></PostItem>
+            </div>
+        `
+    };
+
+    // 根组件
+    const App = {
+        components: {
+            PostForm,
+            PostList
+        },
+        data() {
+            return {
+                posts: [],
+                loading: false
+            };
+        },
+        mounted() {
+            this.fetchPosts();
+        },
+        methods: {
+            async fetchPosts() {
+                this.loading = true;
+                try {
+                    const res = await axios.get('/api/posts');
+                    this.posts = res.data || [];
+                } catch (err) {
+                    console.error('获取动态失败', err);
+                    this.posts = [];
+                } finally {
+                    this.loading = false;
+                }
+            },
+            // 发布成功后的回调
+            handlePostCreated() {
+                this.fetchPosts();
+            },
+            // 删除帖子
+            async handleDeletePost(postId) {
+                try {
+                    await axios.delete(`/api/posts/${postId}`);
+                    // 删除成功后重新拉取列表
+                    this.fetchPosts();
+                } catch (err) {
+                    console.error('删除失败', err);
+                    alert('删除失败，请稍后再试');
+                }
+            }
+        }
+    };
+
+    // 启动Vue应用
+    const app = Vue.createApp(App);
+    app.mount('#app');
+</script>
+</body>
+</html>
